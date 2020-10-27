@@ -7,6 +7,7 @@ from reversiboard import *
 if __name__ == '__main__':
 
 	print('Welcome to Reversi!')
+
 	while True:
 		# Reseta o jogo e o tabuleiro
 		mainBoard = getNewBoard()
@@ -14,6 +15,8 @@ if __name__ == '__main__':
 		playerTile, computerTile = enterPlayerTile()
 		showHints = False
 		turn = whoGoesFirst()
+		AImode = 'no-search-strategy' # 'mini-max' |'heur' | 'alpha-beta' | 'no-search-strategy'
+		initAI(AImode)
 		print('O ' + turn + ' começa o jogo.')
 		while True:
 			if turn == 'player':
@@ -60,3 +63,4 @@ if __name__ == '__main__':
 			print('Empate!')
 		if not playAgain():
 			break
+			

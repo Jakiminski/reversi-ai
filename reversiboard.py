@@ -5,6 +5,8 @@
 import random
 import sys
 
+##################################### TABULEIRO #####################################
+
 def drawBoard(board):
 	# Essa função desenha o tabuleiro
 	HLINE = '  +---+---+---+---+---+---+---+---+'
@@ -42,6 +44,31 @@ def getNewBoard():
 	for i in range(8):
 		board.append([' '] * 8)
 	return board
+
+def enterPlayerTile():
+	# Permite que o player escolha ser X ou O
+	tile = ''
+	while not (tile == 'X' or tile == 'O'):
+		print('Escolha suas peças: X ou O?')
+		tile = input().upper()
+	if tile == 'X':
+		return ['X', 'O']
+	else:
+	 	return ['O', 'X']
+
+def whoGoesFirst():
+	# Escolhe aleatoriamente quem começa.
+	if random.randint(0, 1) == 0:
+		return 'computer'
+	else:
+		return 'player'
+
+def playAgain():
+	# Retorna True se o player quer jogar novamente
+	print('Quer jogar novamente? (y/n)')
+	return input().lower().startswith('y')
+
+##################################### MOVIMENTOS/JOGADAS #####################################
 
 def isValidMove(board, tile, xstart, ystart):
 	# Retorna False se o movimento em xstart, ystart é inválido
@@ -102,6 +129,8 @@ def getValidMoves(board, tile):
 				validMoves.append([x, y])
 	return validMoves
 
+##################################### PONTUAÇÃO #####################################
+
 def getScoreOfBoard(board):
 	# Determina o score baseado na contagem de 'X' e 'O'.
 	xscore = 0
@@ -114,28 +143,13 @@ def getScoreOfBoard(board):
 				oscore += 1
 	return {'X':xscore, 'O':oscore}
 
-def enterPlayerTile():
-	# Permite que o player escolha ser X ou O
-	tile = ''
-	while not (tile == 'X' or tile == 'O'):
-		print('Escolha suas peças: X ou O?')
-		tile = input().upper()
-	if tile == 'X':
-		return ['X', 'O']
-	else:
-	 	return ['O', 'X']
+def showPoints(playerTile, computerTile, mainBoard):
+	# Mostra o score atual
+	scores = getScoreOfBoard(mainBoard)
+	print('Player1: %s ponto(s). \nComputador: %s ponto(s).' % (scores[playerTile], scores[computerTile]))
+	pass
 
-def whoGoesFirst():
-	# Escolhe aleatoriamente quem começa.
-	if random.randint(0, 1) == 0:
-		return 'computer'
-	else:
-		return 'player'
-
-def playAgain():
-	# Retorna True se o player quer jogar novamente
-	print('Quer jogar novamente? (y/n)')
-	return input().lower().startswith('y')
+##################################### UTILITÁRIOS #####################################
 
 def makeMove(board, tile, xstart, ystart):
 	# Coloca a peça no tabuleiro em xstart, ystart, e as peças do oponente
@@ -183,8 +197,61 @@ def getPlayerMove(board, playerTile):
 			print('Por exemplo, 81 será o canto superior direito.')
 	return [x, y]
 
+
+def initAI(searchType):
+	# Inicializa variavel global
+	global  aiMode
+	aiMode = searchType # tipo de busca competitiva: 'mini-max' |'heur' | 'alpha-beta' | 'no-search-strategy'
+	
+	global depth
+	depth = 4
+
+	pass
+
 def getComputerMove(board, computerTile):
-	# Permite ao computador executar seu movimento
+	# Jogada da IA
+	global aiMode
+	global depth
+
+	if aiMode == 'mini-max':
+		return minimaxAImove(board, computerTile, depth)
+	elif aiMode == 'heur':
+		return heurAImove(board, computerTile)
+	elif aiMode == 'alpha-beta':
+		return podaAImove(board, computerTile)
+	elif aiMode == 'no-search-strategy':
+		return defaultAImove(board, computerTile)
+
+##################################### Movimentos da IA #####################################
+
+# MINMAX / MiniMax / Saddle Point Strategy
+# def minimaxAImove(board, computerTile, depth=1):
+def minimaxAImove(board, computerTile, depth):
+	# Checa todas as jogadas finais possíveis na árvore de decisão
+	possibleMoves = getValidMoves(board, computerTile)
+	moves = len(possibleMoves)
+
+	# Constroi árvore de decisão	
+	for x,y in possibleMoves:
+		dupeBoard = getBoardCopy(board)
+		makeMove(dupeBoard, computerTile, x, y)
+		# Adentra a árvore de decisão
+		minimaxAImove(dupeBoard, computerTile)
+	
+	# depth==0 -> avalia a pontuação
+	return defaultAImove(board, computerTile) 
+
+# Heurística
+def heurAImove(board, computerTile):
+	return defaultAImove(board, computerTile) 
+
+# Poda Alfa-Beta
+def podaAImove(board, computerTile):
+	return defaultAImove(board, computerTile) 
+
+# Sem busca competitiva
+def defaultAImove(board, computerTile):
+		# Permite ao computador executar seu movimento
 	possibleMoves = getValidMoves(board, computerTile)
 	# randomiza a ordem dos possíveis movimentos
 	random.shuffle(possibleMoves)
@@ -201,10 +268,5 @@ def getComputerMove(board, computerTile):
 		if score > bestScore:
 			bestMove = [x, y]
 			bestScore = score
+	
 	return bestMove
-
-def showPoints(playerTile, computerTile, mainBoard):
-	# Mostra o score atual
-	scores = getScoreOfBoard(mainBoard)
-	print('Player1: %s ponto(s). \nComputador: %s ponto(s).' % (scores[playerTile], scores[computerTile]))
-	pass
